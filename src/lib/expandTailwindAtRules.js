@@ -6,7 +6,7 @@ import log from '../util/log'
 import cloneNodes from '../util/cloneNodes'
 import { defaultExtractor } from './defaultExtractor'
 import { mini } from '../minify-stuff'
-import { writeFileSync } from 'fs'
+import { writeFile } from 'fs'
 
 let env = sharedState.env
 
@@ -129,7 +129,14 @@ function buildStylesheet(rules, context) {
   }
 
   console.log(classesMap)
-  writeFileSync('classesMap.json', JSON.stringify(classesMap, null, 4))
+  writeFile('classesMap.json', JSON.stringify(classesMap, null, 4), (err) => {
+    if (err) {
+        console.log(err)
+        throw err
+    }
+
+    console.log('classesMap.json written')
+  })
 
   return returnValue
 }

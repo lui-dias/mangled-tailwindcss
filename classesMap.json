@@ -1,18 +1,18 @@
 {
-    "a": {
-        "tailwindClass": "h-10",
-        "cssSelector": ".h-10"
+    ".hover\\:bg-red-500:hover": {
+        "tailwindClass": "hover:bg-red-500",
+        "cssSelector": ".hover\\:bg-red-500:hover"
     },
-    "b": {
-        "tailwindClass": "w-10",
-        "cssSelector": ".w-10"
-    },
-    "c": {
+    ".text-red-500": {
         "tailwindClass": "text-red-500",
         "cssSelector": ".text-red-500"
     },
-    "d": {
-        "tailwindClass": "hover:bg-red-500",
-        "cssSelector": ".hover\\:bg-red-500:hover"
+    ".w-10": {
+        "tailwindClass": "w-10",
+        "cssSelector": ".w-10"
+    },
+    ".h-10": {
+        "tailwindClass": "h-10",
+        "cssSelector": ".h-10"
     }
 }

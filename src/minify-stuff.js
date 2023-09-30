@@ -8,21 +8,29 @@ function mini() {
 
     const last = n[n.length - 1]
 
-    if (reverse) {
-      if (last === 0) {
-        n.pop()
+    while (true) {
+      if (reverse) {
+        if (last === 0) {
+          n.pop()
+        } else {
+          n[n.length - 1] = last - 1
+        }
       } else {
-        n[n.length - 1] = last - 1
-      }
-    } else {
-      for (const i of n) {
-        s += letters[i]
-      }
+        for (const i of n) {
+          s += letters[i]
+        }
 
-      if (last < letters.length - 1) {
-        n[n.length - 1] = last + 1
-      } else {
-        n.push(0)
+        if (last < letters.length - 1) {
+          n[n.length - 1] = last + 1
+        } else {
+          n.push(0)
+        }
+
+        if (/^\d/.test(s)) {
+            continue
+         }
+        
+         break
       }
     }
 

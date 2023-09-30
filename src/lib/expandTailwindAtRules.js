@@ -102,7 +102,7 @@ function buildStylesheet(rules, context) {
         if (n.length > rule.raws.tailwind.candidate.length) {
             m(true)
         }
-  
+
         const lowerName = n.length < rule.raws.tailwind.candidate.length ? n : rule.raws.tailwind.candidate
   
         classesMap[lowerName] = {

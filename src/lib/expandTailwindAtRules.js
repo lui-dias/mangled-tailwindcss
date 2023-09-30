@@ -128,6 +128,7 @@ function buildStylesheet(rules, context) {
     }
   }
 
+  console.log(classesMap)
   writeFileSync('classesMap.json', JSON.stringify(classesMap, null, 4))
 
   return returnValue

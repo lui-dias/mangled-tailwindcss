@@ -1,12 +1,12 @@
 import fs from 'fs'
 import LRU from '@alloc/quick-lru'
-import { parseCandidateStrings, IO, Parsing } from '@tailwindcss/oxide'
 import * as sharedState from './sharedState'
 import { generateRules } from './generateRules'
 import log from '../util/log'
 import cloneNodes from '../util/cloneNodes'
 import { defaultExtractor } from './defaultExtractor'
-import { flagEnabled } from '../featureFlags'
+import { mini } from '../minify-stuff'
+import { writeFileSync } from 'fs'
 
 let env = sharedState.env
 
@@ -26,10 +26,7 @@ function getExtractor(context, fileExtension) {
     extractors[fileExtension] ||
     extractors.DEFAULT ||
     builtInExtractors[fileExtension] ||
-    // Because we call `DEFAULT(context)`, the returning function is always a new function without a
-    // stable identity. Marking it with `DEFAULT_EXTRACTOR` allows us to check if it is the default
-    // extractor without relying on the function identity.
-    Object.assign(builtInExtractors.DEFAULT(context), { DEFAULT_EXTRACTOR: true })
+    builtInExtractors.DEFAULT(context)
   )
 }
 
@@ -96,8 +93,21 @@ function buildStylesheet(rules, context) {
   }
 
   for (let [sort, rule] of sortedRules) {
+    if (sort.layer === 'utilities' || sort.layer === 'variants') {
+      const n = m()
+
+      classesMap[n] = {
+        tailwindClass: rule.raws.tailwind.candidate,
+        cssSelector: rule.selector,
+      }
+
+      rule.selector = '.' + n
+    }
+
     returnValue[sort.layer].add(rule)
   }
+
+  writeFileSync('classesMap.json', JSON.stringify(classesMap, null, 4))
 
   return returnValue
 }
@@ -135,47 +145,25 @@ export default function expandTailwindAtRules(context) {
 
     env.DEBUG && console.time('Reading changed files')
 
-    /** @type {[item: {file?: string, content?: string}, meta: {transformer: any, extractor: any}][]} */
-    let regexParserContent = []
-
-    /** @type {{file?: string, content?: string}[]} */
-    let rustParserContent = []
-
-    for (let item of context.changedContent) {
-      let transformer = getTransformer(context.tailwindConfig, item.extension)
-      let extractor = getExtractor(context, item.extension)
-
-      if (
-        flagEnabled(context.tailwindConfig, 'oxideParser') &&
-        transformer === builtInTransformers.DEFAULT &&
-        extractor?.DEFAULT_EXTRACTOR === true
-      ) {
-        rustParserContent.push(item)
-      } else {
-        regexParserContent.push([item, { transformer, extractor }])
-      }
-    }
-
-    // Read files using our newer, faster parser when:
-    // - Oxide is enabled; AND
-    // - The file is using default transfomers and extractors
-    if (rustParserContent.length > 0) {
-      for (let candidate of parseCandidateStrings(
-        rustParserContent,
-        IO.Parallel | Parsing.Parallel
+    if (__OXIDE__) {
+      // TODO: Pass through or implement `extractor`
+      for (let candidate of require('@tailwindcss/oxide').parseCandidateStringsFromFiles(
+        context.changedContent
+        // Object.assign({}, builtInTransformers, context.tailwindConfig.content.transform)
       )) {
         candidates.add(candidate)
       }
-    }
 
-    // Otherwise, read any files in node and parse with regexes
-    const BATCH_SIZE = 500
-
-    for (let i = 0; i < regexParserContent.length; i += BATCH_SIZE) {
-      let batch = regexParserContent.slice(i, i + BATCH_SIZE)
-
+      // for (let { file, content, extension } of context.changedContent) {
+      //   let transformer = getTransformer(context.tailwindConfig, extension)
+      //   let extractor = getExtractor(context, extension)
+      //   getClassCandidatesOxide(file, transformer(content), extractor, candidates, seen)
+      // }
+    } else {
       await Promise.all(
-        batch.map(async ([{ file, content }, { transformer, extractor }]) => {
+        context.changedContent.map(async ({ file, content, extension }) => {
+          let transformer = getTransformer(context.tailwindConfig, extension)
+          let extractor = getExtractor(context, extension)
           content = file ? await fs.promises.readFile(file, 'utf8') : content
           getClassCandidates(transformer(content), extractor, candidates, seen)
         })
@@ -191,16 +179,15 @@ export default function expandTailwindAtRules(context) {
 
     env.DEBUG && console.time('Generate rules')
     env.DEBUG && console.time('Sorting candidates')
-    // TODO: only sort if we are not using the oxide parser (flagEnabled(context.tailwindConfig,
-    // 'oxideParser')) AND if we got all the candidates form the oxideParser alone. This will not
-    // be the case currently if you have custom transformers / extractors.
-    let sortedCandidates = new Set(
-      [...candidates].sort((a, z) => {
-        if (a === z) return 0
-        if (a < z) return -1
-        return 1
-      })
-    )
+    let sortedCandidates = __OXIDE__
+      ? candidates
+      : new Set(
+          [...candidates].sort((a, z) => {
+            if (a === z) return 0
+            if (a < z) return -1
+            return 1
+          })
+        )
     env.DEBUG && console.timeEnd('Sorting candidates')
     generateRules(sortedCandidates, context)
     env.DEBUG && console.timeEnd('Generate rules')
@@ -274,21 +261,11 @@ export default function expandTailwindAtRules(context) {
       )
       layerNodes.variants.remove()
     } else if (variantNodes.length > 0) {
-      let cloned = cloneNodes(variantNodes, undefined, {
-        layer: 'variants',
-      })
-
-      cloned.forEach((node) => {
-        let parentLayer = node.raws.tailwind?.parentLayer ?? null
-
-        node.walk((n) => {
-          if (!n.source) {
-            n.source = layerNodes[parentLayer].source
-          }
+      root.append(
+        cloneNodes(variantNodes, root.source, {
+          layer: 'variants',
         })
-      })
-
-      root.append(cloned)
+      )
     }
 
     // If we've got a utility layer and no utilities are generated there's likely something wrong

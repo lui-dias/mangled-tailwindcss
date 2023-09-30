@@ -7,39 +7,9 @@ import fastGlob from 'fast-glob'
 import normalizePath from 'normalize-path'
 import { parseGlob } from '../util/parseGlob'
 import { env } from './sharedState'
-import { resolveContentPaths } from '@tailwindcss/oxide'
 
 /** @typedef {import('../../types/config.js').RawFile} RawFile */
 /** @typedef {import('../../types/config.js').FilePath} FilePath */
-
-/*
- * @param {import('tailwindcss').Config} tailwindConfig
- * @param {{skip:string[]}} options
- * @returns {ContentPath[]}
- */
-function resolveContentFiles(tailwindConfig, { skip = [] } = {}) {
-  if (
-    Array.isArray(tailwindConfig.content.files) &&
-    tailwindConfig.content.files.includes('auto')
-  ) {
-    let idx = tailwindConfig.content.files.indexOf('auto')
-    if (idx !== -1) {
-      env.DEBUG && console.time('Calculating resolve content paths')
-      let resolved = resolveContentPaths({ base: process.cwd() })
-      env.DEBUG && console.timeEnd('Calculating resolve content paths')
-
-      tailwindConfig.content.files.splice(idx, 1, ...resolved)
-    }
-  }
-
-  if (skip.length > 0) {
-    tailwindConfig.content.files = tailwindConfig.content.files.filter(
-      (filePath) => !skip.includes(filePath)
-    )
-  }
-
-  return tailwindConfig.content.files
-}
 
 /**
  * @typedef {object} ContentPath
@@ -62,9 +32,7 @@ function resolveContentFiles(tailwindConfig, { skip = [] } = {}) {
  * @returns {ContentPath[]}
  */
 export function parseCandidateFiles(context, tailwindConfig) {
-  let files = resolveContentFiles(tailwindConfig, {
-    skip: [context.userConfigPath],
-  })
+  let files = tailwindConfig.content.files
 
   // Normalize the file globs
   files = files.filter((filePath) => typeof filePath === 'string')

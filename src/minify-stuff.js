@@ -1,4 +1,4 @@
-const letters = 'abcdefghijklmnopqrstuvwxyz'
+const letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_'
 
 function mini() {
 	const n = [0]

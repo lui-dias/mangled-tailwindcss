@@ -15,6 +15,7 @@ function mini() {
         } else {
           n[n.length - 1] = last - 1
         }
+        break
       } else {
         for (const i of n) {
           s += letters[i]
@@ -27,10 +28,11 @@ function mini() {
         }
 
         if (/^[\d-]/.test(s)) {
-            continue
-         }
-        
-         break
+          s = s.slice(0, -1)
+          continue
+        }
+
+        break
       }
     }
 

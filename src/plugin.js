@@ -1,16 +1,7 @@
-import postcss from 'postcss'
-import lightningcss, { Features } from 'lightningcss'
-import browserslist from 'browserslist'
 import setupTrackingContext from './lib/setupTrackingContext'
 import processTailwindFeatures from './processTailwindFeatures'
 import { env } from './lib/sharedState'
 import { findAtConfigPath } from './lib/findAtConfigPath'
-import { handleImportAtRules } from './lib/handleImportAtRules'
-import { version as tailwindVersion } from '../package.json'
-
-function license() {
-  return `/* ! tailwindcss v${tailwindVersion} | MIT License | https://tailwindcss.com */\n`
-}
 
 module.exports = function tailwindcss(configOrPath) {
   return {
@@ -22,7 +13,6 @@ module.exports = function tailwindcss(configOrPath) {
           console.time('JIT TOTAL')
           return root
         },
-      ...handleImportAtRules(),
       async function (root, result) {
         // Use the path for the `@config` directive if it exists, otherwise use the
         // path for the file being processed
@@ -44,82 +34,66 @@ module.exports = function tailwindcss(configOrPath) {
 
         await processTailwindFeatures(context)(root, result)
       },
-      function lightningCssPlugin(_root, result) {
-        let map = result.map ?? result.opts.map
+      __OXIDE__ &&
+        function lightningCssPlugin(_root, result) {
+          let postcss = require('postcss')
+          let lightningcss = require('lightningcss')
+          let browserslist = require('browserslist')
 
-        let intermediateResult = result.root.toResult({
-          map: map ? { inline: true } : false,
-        })
+          try {
+            let transformed = lightningcss.transform({
+              filename: result.opts.from,
+              code: Buffer.from(result.root.toString()),
+              minify: false,
+              sourceMap: !!result.map,
+              inputSourceMap: result.map ? result.map.toString() : undefined,
+              targets:
+                typeof process !== 'undefined' && process.env.JEST_WORKER_ID
+                  ? { chrome: 106 << 16 }
+                  : lightningcss.browserslistToTargets(
+                      browserslist(require('../package.json').browserslist)
+                    ),
 
-        let intermediateMap = intermediateResult.map?.toJSON?.() ?? map
+              drafts: {
+                nesting: true,
+                customMedia: true,
+              },
+            })
 
-        try {
-          let resolvedBrowsersListConfig = browserslist.findConfig(
-            result.opts.from ?? process.cwd()
-          )?.defaults
-          let defaultBrowsersListConfig = require('../package.json').browserslist
-          let browsersListConfig = resolvedBrowsersListConfig ?? defaultBrowsersListConfig
+            result.map = Object.assign(result.map ?? {}, {
+              toJSON() {
+                return transformed.map.toJSON()
+              },
+              toString() {
+                return transformed.map.toString()
+              },
+            })
 
-          let transformed = lightningcss.transform({
-            filename: result.opts.from,
-            code: Buffer.from(intermediateResult.css),
-            minify: false,
-            sourceMap: !!intermediateMap,
-            targets: lightningcss.browserslistToTargets(browserslist(browsersListConfig)),
-            drafts: {
-              nesting: true,
-              customMedia: true,
-            },
-            nonStandard: {
-              deepSelectorCombinator: true,
-            },
-            include: Features.Nesting,
-            exclude: Features.LogicalProperties,
-          })
-
-          let code = transformed.code.toString()
-
-          // https://postcss.org/api/#sourcemapoptions
-          if (intermediateMap && transformed.map != null) {
-            let prev = transformed.map.toString()
-
-            if (typeof intermediateMap === 'object') {
-              intermediateMap.prev = prev
-            } else {
-              code = `${code}\n/*# sourceMappingURL=data:application/json;base64,${Buffer.from(
-                prev
-              ).toString('base64')} */`
+            result.root = postcss.parse(transformed.code.toString('utf8'))
+          } catch (err) {
+            if (typeof process !== 'undefined' && process.env.JEST_WORKER_ID) {
+              let lines = err.source.split('\n')
+              err = new Error(
+                [
+                  'Error formatting using Lightning CSS:',
+                  '',
+                  ...[
+                    '```css',
+                    ...lines.slice(Math.max(err.loc.line - 3, 0), err.loc.line),
+                    ' '.repeat(err.loc.column - 1) + '^-- ' + err.toString(),
+                    ...lines.slice(err.loc.line, err.loc.line + 2),
+                    '```',
+                  ],
+                ].join('\n')
+              )
             }
-          }
 
-          result.root = postcss.parse(license() + code, {
-            ...result.opts,
-            map: intermediateMap,
-          })
-        } catch (err) {
-          if (err.source && typeof process !== 'undefined' && process.env.JEST_WORKER_ID) {
-            let lines = err.source.split('\n')
-            err = new Error(
-              [
-                'Error formatting using Lightning CSS:',
-                '',
-                ...[
-                  '```css',
-                  ...lines.slice(Math.max(err.loc.line - 3, 0), err.loc.line),
-                  ' '.repeat(err.loc.column - 1) + '^-- ' + err.toString(),
-                  ...lines.slice(err.loc.line, err.loc.line + 2),
-                  '```',
-                ],
-              ].join('\n')
-            )
+            if (Error.captureStackTrace) {
+              Error.captureStackTrace(err, lightningCssPlugin)
+            }
+            throw err
           }
-
-          if (Error.captureStackTrace) {
-            Error.captureStackTrace(err, lightningCssPlugin)
-          }
-          throw err
-        }
-      },
+        },
       env.DEBUG &&
         function (root) {
           console.timeEnd('JIT TOTAL')

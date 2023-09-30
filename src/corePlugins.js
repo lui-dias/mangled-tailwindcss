@@ -10,6 +10,7 @@ import withAlphaVariable, { withAlphaValue } from './util/withAlphaVariable'
 import toColorValue from './util/toColorValue'
 import isPlainObject from './util/isPlainObject'
 import transformThemeValue from './util/transformThemeValue'
+import { version as tailwindVersion } from '../package.json'
 import log from './util/log'
 import {
   normalizeScreens,
@@ -369,7 +370,7 @@ export let variantPlugins = {
         let check = normalize(value)
         let isRaw = /^\w*\s*\(/.test(check)
 
-        // Chrome has a bug where `(condition1)or(condition2)` is not valid
+        // Chrome has a bug where `(condtion1)or(condition2)` is not valid
         // But `(condition1) or (condition2)` is supported.
         check = isRaw ? check.replace(/\b(and|or|not)\b/g, ' $1 ') : check
 
@@ -388,26 +389,6 @@ export let variantPlugins = {
         return `@supports ${check}`
       },
       { values: theme('supports') ?? {} }
-    )
-  },
-
-  hasVariants: ({ matchVariant }) => {
-    matchVariant('has', (value) => `&:has(${normalize(value)})`, { values: {} })
-    matchVariant(
-      'group-has',
-      (value, { modifier }) =>
-        modifier
-          ? `:merge(.group\\/${modifier}):has(${normalize(value)}) &`
-          : `:merge(.group):has(${normalize(value)}) &`,
-      { values: {} }
-    )
-    matchVariant(
-      'peer-has',
-      (value, { modifier }) =>
-        modifier
-          ? `:merge(.peer\\/${modifier}):has(${normalize(value)}) ~ &`
-          : `:merge(.peer):has(${normalize(value)}) ~ &`,
-      { values: {} }
     )
   },
 
@@ -501,7 +482,12 @@ export let corePlugins = {
       fs.readFileSync(path.join(__dirname, './css/preflight.css'), 'utf8')
     )
 
-    addBase(preflightStyles.nodes)
+    addBase([
+      postcss.comment({
+        text: `! tailwindcss v${tailwindVersion} | MIT License | https://tailwindcss.com`,
+      }),
+      ...preflightStyles.nodes,
+    ])
   },
 
   container: (() => {
@@ -1275,13 +1261,13 @@ export let corePlugins = {
     ],
   ]),
 
-  space: ({ matchUtilities, addUtilities, theme, config }) => {
+  space: ({ matchUtilities, addUtilities, theme }) => {
     matchUtilities(
       {
         'space-x': (value) => {
           value = value === '0' ? '0px' : value
 
-          if (flagEnabled(config(), 'logicalSiblingUtilities')) {
+          if (__OXIDE__) {
             return {
               '& > :not([hidden]) ~ :not([hidden])': {
                 '--tw-space-x-reverse': '0',
@@ -1320,13 +1306,13 @@ export let corePlugins = {
     })
   },
 
-  divideWidth: ({ matchUtilities, addUtilities, theme, config }) => {
+  divideWidth: ({ matchUtilities, addUtilities, theme }) => {
     matchUtilities(
       {
         'divide-x': (value) => {
           value = value === '0' ? '0px' : value
 
-          if (flagEnabled(config(), 'logicalSiblingUtilities')) {
+          if (__OXIDE__) {
             return {
               '& > :not([hidden]) ~ :not([hidden])': {
                 '@defaults border-width': {},
@@ -1520,15 +1506,6 @@ export let corePlugins = {
       '.whitespace-pre-line': { 'white-space': 'pre-line' },
       '.whitespace-pre-wrap': { 'white-space': 'pre-wrap' },
       '.whitespace-break-spaces': { 'white-space': 'break-spaces' },
-    })
-  },
-
-  textWrap: ({ addUtilities }) => {
-    addUtilities({
-      '.text-wrap': { 'text-wrap': 'wrap' },
-      '.text-nowrap': { 'text-wrap': 'nowrap' },
-      '.text-balance': { 'text-wrap': 'balance' },
-      '.text-pretty': { 'text-wrap': 'pretty' },
     })
   },
 

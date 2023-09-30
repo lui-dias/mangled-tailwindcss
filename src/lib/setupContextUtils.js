@@ -21,6 +21,7 @@ import isSyntacticallyValidPropertyValue from '../util/isSyntacticallyValidPrope
 import { generateRules, getClassNameFromSelector } from './generateRules'
 import { hasContentChanged } from './cacheInvalidation.js'
 import { Offsets } from './offsets.js'
+import { flagEnabled } from '../featureFlags.js'
 import { finalizeSelector, formatVariantSelector } from '../util/formatVariantSelector'
 
 export const INTERNAL_FEATURES = Symbol()
@@ -147,45 +148,43 @@ function getClasses(selector, mutate) {
   return parser.transformSync(selector)
 }
 
-/**
- * Ignore everything inside a :not(...). This allows you to write code like
- * `div:not(.foo)`. If `.foo` is never found in your code, then we used to
- * not generated it. But now we will ignore everything inside a `:not`, so
- * that it still gets generated.
- *
- * @param {selectorParser.Root} selectors
- */
-function ignoreNot(selectors) {
-  selectors.walkPseudos((pseudo) => {
-    if (pseudo.value === ':not') {
-      pseudo.remove()
-    }
-  })
-}
-
 function extractCandidates(node, state = { containsNonOnDemandable: false }, depth = 0) {
   let classes = []
-  let selectors = []
 
+  // Handle normal rules
   if (node.type === 'rule') {
-    // Handle normal rules
-    selectors.push(...node.selectors)
-  } else if (node.type === 'atrule') {
-    // Handle at-rules (which contains nested rules)
-    node.walkRules((rule) => selectors.push(...rule.selectors))
+    // Ignore everything inside a :not(...). This allows you to write code like
+    // `div:not(.foo)`. If `.foo` is never found in your code, then we used to
+    // not generated it. But now we will ignore everything inside a `:not`, so
+    // that it still gets generated.
+    function ignoreNot(selectors) {
+      selectors.walkPseudos((pseudo) => {
+        if (pseudo.value === ':not') {
+          pseudo.remove()
+        }
+      })
+    }
+
+    for (let selector of node.selectors) {
+      let classCandidates = getClasses(selector, ignoreNot)
+      // At least one of the selectors contains non-"on-demandable" candidates.
+      if (classCandidates.length === 0) {
+        state.containsNonOnDemandable = true
+      }
+
+      for (let classCandidate of classCandidates) {
+        classes.push(classCandidate)
+      }
+    }
   }
 
-  for (let selector of selectors) {
-    let classCandidates = getClasses(selector, ignoreNot)
-
-    // At least one of the selectors contains non-"on-demandable" candidates.
-    if (classCandidates.length === 0) {
-      state.containsNonOnDemandable = true
-    }
-
-    for (let classCandidate of classCandidates) {
-      classes.push(classCandidate)
-    }
+  // Handle at-rules (which contains nested rules)
+  else if (node.type === 'atrule') {
+    node.walkRules((rule) => {
+      for (let classCandidate of rule.selectors.flatMap((selector) => getClasses(selector))) {
+        classes.push(classCandidate)
+      }
+    })
   }
 
   if (depth === 0) {
@@ -437,8 +436,10 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
             },
           }
 
+          let modifiersEnabled = flagEnabled(tailwindConfig, 'generalizedModifiers')
+
           let ruleSets = []
-            .concat(rule(value, extras))
+            .concat(modifiersEnabled ? rule(value, extras) : rule(value))
             .filter(Boolean)
             .map((declaration) => ({
               [nameClass(identifier, modifier)]: declaration,
@@ -515,8 +516,10 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
             },
           }
 
+          let modifiersEnabled = flagEnabled(tailwindConfig, 'generalizedModifiers')
+
           let ruleSets = []
-            .concat(rule(value, extras))
+            .concat(modifiersEnabled ? rule(value, extras) : rule(value))
             .filter(Boolean)
             .map((declaration) => ({
               [nameClass(identifier, modifier)]: declaration,
@@ -584,13 +587,18 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
       let id = options?.id ?? ++variantIdentifier
       let isSpecial = variant === '@'
 
+      let modifiersEnabled = flagEnabled(tailwindConfig, 'generalizedModifiers')
+
       for (let [key, value] of Object.entries(options?.values ?? {})) {
         if (key === 'DEFAULT') continue
 
         api.addVariant(
           isSpecial ? `${variant}${key}` : `${variant}-${key}`,
           ({ args, container }) => {
-            return variantFn(value, { modifier: args?.modifier, container })
+            return variantFn(
+              value,
+              modifiersEnabled ? { modifier: args?.modifier, container } : { container }
+            )
           },
 
           {
@@ -618,7 +626,7 @@ function buildPluginApi(tailwindConfig, context, { variantList, variantMap, offs
               : // Falling back to args if it is a string, otherwise '' for older intellisense
                 // (JetBrains) plugins.
                 args?.value ?? (typeof args === 'string' ? args : ''),
-            { modifier: args?.modifier, container }
+            modifiersEnabled ? { modifier: args?.modifier, container } : { container }
           )
         },
         {
@@ -723,7 +731,7 @@ function collectLayerPlugins(root) {
 }
 
 function resolvePlugins(context, root) {
-  let corePluginList = Object.entries(corePlugins)
+  let corePluginList = Object.entries({ ...variantPlugins, ...corePlugins })
     .map(([name, plugin]) => {
       if (!context.tailwindConfig.corePlugins.includes(name)) {
         return null
@@ -748,7 +756,6 @@ function resolvePlugins(context, root) {
   let beforeVariants = [
     variantPlugins['pseudoElementVariants'],
     variantPlugins['pseudoClassVariants'],
-    variantPlugins['hasVariants'],
     variantPlugins['ariaVariants'],
     variantPlugins['dataVariants'],
   ]

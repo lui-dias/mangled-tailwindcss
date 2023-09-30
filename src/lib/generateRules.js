@@ -16,6 +16,7 @@ import { normalize } from '../util/dataTypes'
 import { isValidVariantFormatString, parseVariant, INTERNAL_FEATURES } from './setupContextUtils'
 import isValidArbitraryValue from '../util/isSyntacticallyValidPropertyValue'
 import { splitAtTopLevelOnly } from '../util/splitAtTopLevelOnly.js'
+import { flagEnabled } from '../featureFlags'
 import { applyImportantSelector } from '../util/applyImportantSelector'
 
 let classNameParser = selectorParser((selectors) => {
@@ -44,7 +45,7 @@ function* candidatePermutations(candidate) {
       let bracketIdx = candidate.indexOf('[')
 
       // If character before `[` isn't a dash or a slash, this isn't a dynamic class
-      // e.g. string[]
+      // eg. string[]
       if (candidate[bracketIdx - 1] === '-') {
         dashIdx = bracketIdx - 1
       } else if (candidate[bracketIdx - 1] === '/') {
@@ -174,6 +175,10 @@ function applyVariant(variant, matches, context) {
     if (modifiers.length && !context.variantMap.has(variant)) {
       variant = baseVariant
       args.modifier = modifiers[0]
+
+      if (!flagEnabled(context.tailwindConfig, 'generalizedModifiers')) {
+        return []
+      }
     }
   }
 
@@ -461,9 +466,9 @@ function isParsableNode(node) {
 }
 
 function isParsableCssValue(property, value) {
-  // We don't want to treat [https://example.com] as a custom property
+  // We don't want to to treat [https://example.com] as a custom property
   // Even though, according to the CSS grammar, it's a totally valid CSS declaration
-  // So we short-circuit here by checking if the custom property looks like a URL
+  // So we short-circuit here by checking if the custom property looks like a url
   if (looksLikeUri(`${property}:${value}`)) {
     return false
   }
@@ -568,7 +573,7 @@ function* recordCandidates(matches, classCandidate) {
   }
 }
 
-function* resolveMatches(candidate, context) {
+function* resolveMatches(candidate, context, original = candidate) {
   let separator = context.tailwindConfig.separator
   let [classCandidate, ...variants] = splitWithSeparator(candidate, separator).reverse()
   let important = false
@@ -576,6 +581,15 @@ function* resolveMatches(candidate, context) {
   if (classCandidate.startsWith('!')) {
     important = true
     classCandidate = classCandidate.slice(1)
+  }
+
+  if (flagEnabled(context.tailwindConfig, 'variantGrouping')) {
+    if (classCandidate.startsWith('(') && classCandidate.endsWith(')')) {
+      let base = variants.slice().reverse().join(separator)
+      for (let part of splitAtTopLevelOnly(classCandidate.slice(1, -1), ',')) {
+        yield* resolveMatches(base + separator + part, context, original)
+      }
+    }
   }
 
   // TODO: Reintroduce this in ways that doesn't break on false positives
@@ -766,7 +780,7 @@ function* resolveMatches(candidate, context) {
       match[1].raws.tailwind = { ...match[1].raws.tailwind, candidate }
 
       // Apply final format selector
-      match = applyFinalFormat(match, { context, candidate })
+      match = applyFinalFormat(match, { context, candidate, original })
 
       // Skip rules with invalid selectors
       // This will cause the candidate to be added to the "not class"
@@ -780,7 +794,7 @@ function* resolveMatches(candidate, context) {
   }
 }
 
-function applyFinalFormat(match, { context, candidate }) {
+function applyFinalFormat(match, { context, candidate, original }) {
   if (!match[0].collectedFormats) {
     return match
   }
@@ -815,19 +829,10 @@ function applyFinalFormat(match, { context, candidate }) {
     }
 
     try {
-      let selector = finalizeSelector(rule.selector, finalFormat, {
-        candidate,
+      rule.selector = finalizeSelector(rule.selector, finalFormat, {
+        candidate: original,
         context,
       })
-
-      // Finalize Selector determined that this candidate is irrelevant
-      // TODO: This elimination should happen earlier so this never happens
-      if (selector === null) {
-        rule.remove()
-        return
-      }
-
-      rule.selector = selector
     } catch {
       // If this selector is invalid we also want to skip it
       // But it's likely that being invalid here means there's a bug in a plugin rather than too loosely matching content

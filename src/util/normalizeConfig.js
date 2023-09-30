@@ -1,4 +1,4 @@
-import { flagEnabled, featureFlags } from '../featureFlags'
+import { flagEnabled } from '../featureFlags'
 import log, { dim } from './log'
 
 export function normalizeConfig(config) {
@@ -18,10 +18,6 @@ export function normalizeConfig(config) {
    *   }
    */
   let valid = (() => {
-    if (config.content === 'auto') {
-      return true
-    }
-
     // `config.purge` should not exist anymore
     if (config.purge) {
       return false
@@ -200,17 +196,11 @@ export function normalizeConfig(config) {
     files: (() => {
       let { content, purge } = config
 
-      if (content === undefined && purge === undefined) return []
-      if (purge) {
-        if (Array.isArray(purge)) return purge
-        if (Array.isArray(purge?.content)) return purge.content
-        return []
-      }
-
+      if (Array.isArray(purge)) return purge
+      if (Array.isArray(purge?.content)) return purge.content
       if (Array.isArray(content)) return content
       if (Array.isArray(content?.content)) return content.content
       if (Array.isArray(content?.files)) return content.files
-      if (content === 'auto') return ['auto']
 
       return []
     })(),
@@ -294,33 +284,16 @@ export function normalizeConfig(config) {
     })(),
   }
 
-  // Force disable the `oxideParser` feature flag when using unsupported features.
-  // TODO: Remove once we have prefix or separator support in the oxide parser.
-  if (config.prefix !== '' || config.separator !== ':') {
-    if (config.experimental === 'all') {
-      config.experimental = {}
-      for (let key of featureFlags.experimental) {
-        config.experimental[key] = true
-      }
-    } else {
-      config.experimental = config.experimental ?? {}
-    }
-
-    config.experimental.oxideParser = false
-  }
-
   // Validate globs to prevent bogus globs.
   // E.g.: `./src/*.{html}` is invalid, the `{html}` should just be `html`
-  if (config.content.files !== 'auto') {
-    for (let file of config.content.files) {
-      if (typeof file === 'string' && /{([^,]*?)}/g.test(file)) {
-        log.warn('invalid-glob-braces', [
-          `The glob pattern ${dim(file)} in your Tailwind CSS configuration is invalid.`,
-          `Update it to ${dim(file.replace(/{([^,]*?)}/g, '$1'))} to silence this warning.`,
-          // TODO: Add https://tw.wtf/invalid-glob-braces
-        ])
-        break
-      }
+  for (let file of config.content.files) {
+    if (typeof file === 'string' && /{([^,]*?)}/g.test(file)) {
+      log.warn('invalid-glob-braces', [
+        `The glob pattern ${dim(file)} in your Tailwind CSS configuration is invalid.`,
+        `Update it to ${dim(file.replace(/{([^,]*?)}/g, '$1'))} to silence this warning.`,
+        // TODO: Add https://tw.wtf/invalid-glob-braces
+      ])
+      break
     }
   }
 

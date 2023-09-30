@@ -3,21 +3,27 @@ import log from './util/log'
 
 let defaults = {
   optimizeUniversalDefaults: false,
-  disableColorOpacityUtilitiesByDefault: false,
-  relativeContentPathsByDefault: false,
-  oxideParser: true,
-  logicalSiblingUtilities: false,
+  generalizedModifiers: true,
+  get disableColorOpacityUtilitiesByDefault() {
+    return __OXIDE__
+  },
+  get relativeContentPathsByDefault() {
+    return __OXIDE__
+  },
 }
 
-export let featureFlags = {
+let featureFlags = {
   future: [
     'hoverOnlyWhenSupported',
     'respectDefaultRingColorOpacity',
     'disableColorOpacityUtilitiesByDefault',
     'relativeContentPathsByDefault',
-    'logicalSiblingUtilities',
   ],
-  experimental: ['optimizeUniversalDefaults', 'oxideParser'],
+  experimental: [
+    'optimizeUniversalDefaults',
+    'generalizedModifiers',
+    // 'variantGrouping',
+  ],
 }
 
 export function flagEnabled(config, flag) {

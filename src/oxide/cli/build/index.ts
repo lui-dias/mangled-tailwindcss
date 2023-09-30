@@ -1,9 +1,7 @@
-// @ts-check
-
 import fs from 'fs'
 import path from 'path'
-import { resolveDefaultConfigPath } from '../../util/resolveConfigPath.js'
-import { createProcessor } from './plugin.js'
+import { resolveDefaultConfigPath } from '../../../util/resolveConfigPath'
+import { createProcessor } from './plugin'
 
 export async function build(args) {
   let input = args['--input']

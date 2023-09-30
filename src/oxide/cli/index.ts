@@ -8,6 +8,8 @@ import { build } from './build'
 import { help } from './help'
 import { init } from './init'
 
+// ---
+
 function oneOf(...options) {
   return Object.assign(
     (value = true) => {
@@ -30,13 +32,11 @@ let commands = {
     args: {
       '--esm': { type: Boolean, description: `Initialize configuration file as ESM` },
       '--ts': { type: Boolean, description: `Initialize configuration file as TypeScript` },
-      '--postcss': { type: Boolean, description: `Initialize a \`postcss.config.js\` file` },
       '--full': {
         type: Boolean,
         description: `Include the default values for all options in the generated configuration file`,
       },
       '-f': '--full',
-      '-p': '--postcss',
     },
   },
   build: {
@@ -56,22 +56,10 @@ let commands = {
         type: String,
         description: 'Content paths to use for removing unused classes',
       },
-      '--purge': {
-        type: String,
-        deprecated: true,
-      },
-      '--postcss': {
-        type: oneOf(String, Boolean),
-        description: 'Load custom PostCSS configuration',
-      },
       '--minify': { type: Boolean, description: 'Minify the output' },
       '--config': {
         type: String,
         description: 'Path to a custom config file',
-      },
-      '--no-autoprefixer': {
-        type: Boolean,
-        description: 'Disable autoprefixer',
       },
       '-c': '--config',
       '-i': '--input',
@@ -96,7 +84,7 @@ if (
   help({
     usage: [
       'tailwindcss [--input input.css] [--output output.css] [--watch] [options...]',
-      'tailwindcss init [--full] [--postcss] [options...]',
+      'tailwindcss init [--full] [options...]',
     ],
     commands: Object.keys(commands)
       .filter((command) => command !== 'build')

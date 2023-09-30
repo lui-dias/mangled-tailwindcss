@@ -1,5 +1,3 @@
-// @ts-check
-
 import path from 'path'
 import fs from 'fs'
 import postcssrc from 'postcss-load-config'
@@ -7,18 +5,19 @@ import { lilconfig } from 'lilconfig'
 import loadPlugins from 'postcss-load-config/src/plugins' // Little bit scary, looking at private/internal API
 import loadOptions from 'postcss-load-config/src/options' // Little bit scary, looking at private/internal API
 
-import tailwind from '../../processTailwindFeatures'
-import { loadAutoprefixer, loadCssNano, loadPostcss, loadPostcssImport } from './deps'
+import tailwind from '../../../processTailwindFeatures'
+import { loadPostcss, loadPostcssImport, lightningcss } from './deps'
 import { formatNodes, drainStdin, outputFile } from './utils'
-import { env } from '../../lib/sharedState'
-import resolveConfig from '../../../resolveConfig.js'
-import { parseCandidateFiles } from '../../lib/content.js'
-import { createWatcher } from './watching.js'
+import { env } from '../../../lib/sharedState'
+import resolveConfig from '../../../../resolveConfig'
+import { parseCandidateFiles } from '../../../lib/content'
+import { createWatcher } from './watching'
 import fastGlob from 'fast-glob'
-import { findAtConfigPath } from '../../lib/findAtConfigPath.js'
-import log from '../../util/log'
-import { loadConfig } from '../../lib/load-config'
-import getModuleDependencies from '../../lib/getModuleDependencies'
+import { findAtConfigPath } from '../../../lib/findAtConfigPath'
+import log from '../../../util/log'
+import { loadConfig } from '../../../lib/load-config'
+import getModuleDependencies from '../../../lib/getModuleDependencies'
+import type { Config } from '../../../../types'
 
 /**
  *
@@ -118,7 +117,7 @@ let state = {
   /** @type {{content: string, extension: string}[]} */
   changedContent: [],
 
-  /** @type {ReturnType<typeof load> | null} */
+  /** @type {{config: Config, dependencies: Set<string>, dispose: Function } | null} */
   configBag: null,
 
   contextDependencies: new Set(),
@@ -171,7 +170,7 @@ let state = {
     return this.configBag.config
   },
 
-  refreshConfigDependencies() {
+  refreshConfigDependencies(configPath) {
     env.DEBUG && console.time('Module dependencies')
     this.configBag?.dispose()
     env.DEBUG && console.timeEnd('Module dependencies')
@@ -278,9 +277,9 @@ export async function createProcessor(args, cliConfigPath) {
   let tailwindPlugin = () => {
     return {
       postcssPlugin: 'tailwindcss',
-      async Once(root, { result }) {
+      Once(root, { result }) {
         env.DEBUG && console.time('Compiling CSS')
-        await tailwind(({ createContext }) => {
+        tailwind(({ createContext }) => {
           console.error()
           console.error('Rebuilding...')
 
@@ -306,8 +305,6 @@ export async function createProcessor(args, cliConfigPath) {
     tailwindPlugin,
     !args['--minify'] && formatNodes,
     ...afterPlugins,
-    !args['--no-autoprefixer'] && loadAutoprefixer(),
-    args['--minify'] && loadCssNano(),
   ].filter(Boolean)
 
   /** @type {import('postcss').Processor} */
@@ -334,6 +331,7 @@ export async function createProcessor(args, cliConfigPath) {
 
     return readInput()
       .then((css) => processor.process(css, { ...postcssOptions, from: input, to: output }))
+      .then((result) => lightningcss(!!args['--minify'], result))
       .then((result) => {
         if (!state.watcher) {
           return result

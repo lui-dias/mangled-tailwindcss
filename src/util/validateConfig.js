@@ -1,4 +1,3 @@
-import pc from 'picocolors'
 import log from './log'
 
 export function validateConfig(config) {
@@ -8,15 +7,6 @@ export function validateConfig(config) {
       'Configure your content sources or your generated CSS will be missing styles.',
       'https://tailwindcss.com/docs/content-configuration',
     ])
-  }
-
-  if (config.content.files.includes('auto')) {
-    log.group('auto-content-experimental', (log) => {
-      log.info([pc.bold('Automatically detecting Tailwind CSS content sources...')])
-      log.warn([
-        'Automatic content detection is experimental, and the behavior may change at any time.',
-      ])
-    })
   }
 
   // Warn if the line-clamp plugin is installed

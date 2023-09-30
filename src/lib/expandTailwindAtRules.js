@@ -98,8 +98,12 @@ function buildStylesheet(rules, context) {
   for (let [sort, rule] of sortedRules) {
     if (sort.layer === 'utilities' || sort.layer === 'variants') {
         const n = m()
+
+        if (n.length > rule.raws.tailwind.candidate.length) {
+            m(true)
+        }
   
-        const lowerName = !rule.raws.tailwind.candidate || n.length < rule.raws.tailwind.candidate.length ? n : rule.raws.tailwind.candidate
+        const lowerName = n.length < rule.raws.tailwind.candidate.length ? n : rule.raws.tailwind.candidate
   
         classesMap[lowerName] = {
           tailwindClass: rule.raws.tailwind.candidate,

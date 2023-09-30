@@ -1,27 +1,35 @@
 const letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_'
 
 function mini() {
-	const n = [0]
+  const n = [0]
 
-	return () => {
-		let s = ''
+  return (reverse) => {
+    let s = ''
 
-		for (const i of n) {
-			s += letters[i]
-		}
+    const last = n[n.length - 1]
 
-		const last = n[n.length - 1]
+    if (reverse) {
+      if (last === 0) {
+        n.pop()
+      } else {
+        n[n.length - 1] = last - 1
+      }
+    } else {
+      for (const i of n) {
+        s += letters[i]
+      }
 
-		if (last < letters.length - 1) {
-			n[n.length - 1] = last + 1
-		} else {
-			n.push(0)
-		}
+      if (last < letters.length - 1) {
+        n[n.length - 1] = last + 1
+      } else {
+        n.push(0)
+      }
+    }
 
-		return s
-	}
+    return s
+  }
 }
 
 module.exports = {
-    mini
+  mini,
 }

@@ -92,6 +92,9 @@ function buildStylesheet(rules, context) {
     variants: new Set(),
   }
 
+  const m = mini()
+  const classesMap = {}
+
   for (let [sort, rule] of sortedRules) {
     if (sort.layer === 'utilities' || sort.layer === 'variants') {
       const n = m()

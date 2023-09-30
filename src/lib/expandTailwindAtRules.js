@@ -113,11 +113,11 @@ function buildStylesheet(rules, context) {
   for (let [k, v] of Object.entries(classesMap)) {
     const n = m()
 
-    if (n.length >= tailwindClass.length) {
+    if (n.length >= v.tailwindClass.length) {
       m(true)
     }
 
-    const lowerName = n.length < tailwindClass.length ? n : tailwindClass
+    const lowerName = n.length < v.tailwindClass.length ? n : v.tailwindClass
 
     for (let [sort, rule] of sortedRules) {
       if (rule.selector === v.cssSelector) {

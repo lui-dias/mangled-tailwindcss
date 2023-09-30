@@ -97,15 +97,17 @@ function buildStylesheet(rules, context) {
 
   for (let [sort, rule] of sortedRules) {
     if (sort.layer === 'utilities' || sort.layer === 'variants') {
-      const n = m()
-
-      classesMap[n] = {
-        tailwindClass: rule.raws.tailwind.candidate,
-        cssSelector: rule.selector,
+        const n = m()
+  
+        const lowerName = !rule.selector || n.length < rule.selector.length ? n : rule.selector
+  
+        classesMap[lowerName] = {
+          tailwindClass: rule.raws.tailwind.candidate,
+          cssSelector: rule.selector,
+        }
+  
+        rule.selector = '.' + n.replace(/^\./, '')
       }
-
-      rule.selector = '.' + n
-    }
 
     returnValue[sort.layer].add(rule)
   }

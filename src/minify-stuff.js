@@ -6,9 +6,9 @@ function mini() {
   return (reverse) => {
     let s = ''
 
-    const last = n[n.length - 1]
-
+    
     while (true) {
+        const last = n[n.length - 1]
       if (reverse) {
         if (last === 0) {
           n.pop()

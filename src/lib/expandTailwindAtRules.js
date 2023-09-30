@@ -93,11 +93,11 @@ function buildStylesheet(rules, context) {
   }
 
   const m = mini()
-  const classesMap = {}
+  let classesMap = {}
 
   for (let [sort, rule] of sortedRules) {
     if (sort.layer === 'utilities' || sort.layer === 'variants') {
-        const n = m()
+      /* const n = m()
 
         if (n.length > rule.raws.tailwind.candidate.length) {
             m(true)
@@ -109,15 +109,47 @@ function buildStylesheet(rules, context) {
           tailwindClass: rule.raws.tailwind.candidate,
           cssSelector: rule.selector,
         }
-  
-        rule.selector = '.' + n.replace(/^\./, '')
+        
+        rule.selector = '.' + n.replace(/^\./, '') */
+
+      classesMap[rule.selector] = {
+        tailwindClass: rule.raws.tailwind.candidate,
+        cssSelector: rule.selector,
       }
+    }
 
     returnValue[sort.layer].add(rule)
   }
 
-  writeFileSync('classesMap.json', JSON.stringify(classesMap, null, 4))
+  classesMap = Object.fromEntries(
+    Object.entries(classesMap)
+      .sort((a, b) => a[0].length - b[0].length)
+      .reverse()
+  )
 
+  for (let [k, v] of Object.entries(classesMap)) {
+    const n = m()
+
+    if (n.length >= tailwindClass.length) {
+      m(true)
+    }
+
+    const lowerName =
+      n.length < tailwindClass.length ? n : tailwindClass
+
+    classesMap[lowerName] = {
+      tailwindClass: tailwindClass,
+      cssSelector: v.cssSelector,
+    }
+
+    for (let [sort, rule] of sortedRules) {
+      if (rule.selector === v.cssSelector) {
+        rule.selector = '.' + n.replace(/^\./, '')
+      }
+    }
+  }
+
+  writeFileSync('classesMap.json', JSON.stringify(classesMap, null, 4))
 
   return returnValue
 }
@@ -189,15 +221,16 @@ export default function expandTailwindAtRules(context) {
 
     env.DEBUG && console.time('Generate rules')
     env.DEBUG && console.time('Sorting candidates')
-    let sortedCandidates = typeof __OXIDE__ !== 'undefined'
-      ? candidates
-      : new Set(
-          [...candidates].sort((a, z) => {
-            if (a === z) return 0
-            if (a < z) return -1
-            return 1
-          })
-        )
+    let sortedCandidates =
+      typeof __OXIDE__ !== 'undefined'
+        ? candidates
+        : new Set(
+            [...candidates].sort((a, z) => {
+              if (a === z) return 0
+              if (a < z) return -1
+              return 1
+            })
+          )
     env.DEBUG && console.timeEnd('Sorting candidates')
     generateRules(sortedCandidates, context)
     env.DEBUG && console.timeEnd('Generate rules')

@@ -26,7 +26,7 @@ function mini() {
           n.push(0)
         }
 
-        if (/^\d/.test(s)) {
+        if (/^[\d-]/.test(s)) {
             continue
          }
         

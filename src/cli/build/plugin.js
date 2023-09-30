@@ -185,7 +185,7 @@ let state = {
     let files = fastGlob.sync(this.contentPatterns.all)
 
     for (let file of files) {
-      if (__OXIDE__) {
+      if (typeof __OXIDE__ !== 'undefined') {
         content.push({
           file,
           extension: path.extname(file).slice(1),

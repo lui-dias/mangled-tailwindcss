@@ -146,7 +146,7 @@ export default function expandTailwindAtRules(context) {
 
     env.DEBUG && console.time('Reading changed files')
 
-    if (__OXIDE__) {
+    if (typeof __OXIDE__ !== 'undefined') {
       // TODO: Pass through or implement `extractor`
       for (let candidate of require('@tailwindcss/oxide').parseCandidateStringsFromFiles(
         context.changedContent
@@ -180,7 +180,7 @@ export default function expandTailwindAtRules(context) {
 
     env.DEBUG && console.time('Generate rules')
     env.DEBUG && console.time('Sorting candidates')
-    let sortedCandidates = __OXIDE__
+    let sortedCandidates = typeof __OXIDE__ !== 'undefined'
       ? candidates
       : new Set(
           [...candidates].sort((a, z) => {

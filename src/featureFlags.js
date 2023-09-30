@@ -5,10 +5,10 @@ let defaults = {
   optimizeUniversalDefaults: false,
   generalizedModifiers: true,
   get disableColorOpacityUtilitiesByDefault() {
-    return __OXIDE__
+    return typeof __OXIDE__ !== 'undefined'
   },
   get relativeContentPathsByDefault() {
-    return __OXIDE__
+    return typeof __OXIDE__ !== 'undefined'
   },
 }
 

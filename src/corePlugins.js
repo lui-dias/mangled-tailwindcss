@@ -1267,7 +1267,7 @@ export let corePlugins = {
         'space-x': (value) => {
           value = value === '0' ? '0px' : value
 
-          if (__OXIDE__) {
+          if (typeof __OXIDE__ !== 'undefined') {
             return {
               '& > :not([hidden]) ~ :not([hidden])': {
                 '--tw-space-x-reverse': '0',
@@ -1312,7 +1312,7 @@ export let corePlugins = {
         'divide-x': (value) => {
           value = value === '0' ? '0px' : value
 
-          if (__OXIDE__) {
+          if (typeof __OXIDE__ !== 'undefined') {
             return {
               '& > :not([hidden]) ~ :not([hidden])': {
                 '@defaults border-width': {},

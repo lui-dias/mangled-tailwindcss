@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-if (__OXIDE__) {
+if (typeof __OXIDE__ !== 'undefined') {
   module.exports = require('./oxide/cli')
 } else {
   module.exports = require('./cli/index')

@@ -99,7 +99,7 @@ function buildStylesheet(rules, context) {
     if (sort.layer === 'utilities' || sort.layer === 'variants') {
         const n = m()
   
-        const lowerName = !rule.selector || n.length < rule.selector.length ? n : rule.selector
+        const lowerName = !rule.raws.tailwind.candidate || n.length < rule.raws.tailwind.candidate.length ? n : rule.raws.tailwind.candidate
   
         classesMap[lowerName] = {
           tailwindClass: rule.raws.tailwind.candidate,

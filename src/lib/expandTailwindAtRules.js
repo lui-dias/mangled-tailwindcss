@@ -97,28 +97,11 @@ function buildStylesheet(rules, context) {
 
   for (let [sort, rule] of sortedRules) {
     if (sort.layer === 'utilities' || sort.layer === 'variants') {
-      /* const n = m()
-
-        if (n.length > rule.raws.tailwind.candidate.length) {
-            m(true)
-        }
-
-        const lowerName = n.length < rule.raws.tailwind.candidate.length ? n : rule.raws.tailwind.candidate
-  
-        classesMap[lowerName] = {
-          tailwindClass: rule.raws.tailwind.candidate,
-          cssSelector: rule.selector,
-        }
-        
-        rule.selector = '.' + n.replace(/^\./, '') */
-
       classesMap[rule.selector] = {
         tailwindClass: rule.raws.tailwind.candidate,
         cssSelector: rule.selector,
       }
     }
-
-    returnValue[sort.layer].add(rule)
   }
 
   classesMap = Object.fromEntries(
@@ -134,18 +117,14 @@ function buildStylesheet(rules, context) {
       m(true)
     }
 
-    const lowerName =
-      n.length < tailwindClass.length ? n : tailwindClass
-
-    classesMap[lowerName] = {
-      tailwindClass: tailwindClass,
-      cssSelector: v.cssSelector,
-    }
+    const lowerName = n.length < tailwindClass.length ? n : tailwindClass
 
     for (let [sort, rule] of sortedRules) {
       if (rule.selector === v.cssSelector) {
-        rule.selector = '.' + n.replace(/^\./, '')
+        rule.selector = '.' + lowerName.replace(/^\./, '')
       }
+
+      returnValue[sort.layer].add(rule)
     }
   }
 

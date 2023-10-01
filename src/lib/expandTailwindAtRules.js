@@ -104,7 +104,7 @@ function buildStylesheet(rules, context) {
             cssSelector: rule.selector,
         }
         
-        if (!classesMap[rule.selector]) {
+        if (!classesMap[rule.selector].classesCount) {
             classesMap[rule.selector].classesCount = 0
         }
 

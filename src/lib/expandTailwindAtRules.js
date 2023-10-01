@@ -123,6 +123,7 @@ function buildStylesheet(rules, context) {
     for (let [sort, rule] of sortedRules) {
       if (rule.selector === v.cssSelector) {
         rule.selector = '.' + escapeClassName(lowerName.replace(/^\./, ''))
+        classesMap[k].minorName = '.' + escapeClassName(lowerName.replace(/^\./, ''))
       }
 
       returnValue[sort.layer].add(rule)

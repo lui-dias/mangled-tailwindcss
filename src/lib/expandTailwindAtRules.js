@@ -118,7 +118,7 @@ function buildStylesheet(rules, context) {
 
   for (let [sort, rule] of sortedRules) {
     if (sort.layer === 'utilities' || sort.layer === 'variants') {
-      classesMap[rule.selector] = {
+      classesMap[rule.raws.tailwind.candidate] = {
         tailwindClass: rule.raws.tailwind.candidate,
         cssSelector: rule.selector,
         classesCount: counted[rule.raws.tailwind.candidate]

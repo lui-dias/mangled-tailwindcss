@@ -98,16 +98,25 @@ function buildStylesheet(rules, context) {
 
   for (let [sort, rule] of sortedRules) {
     if (sort.layer === 'utilities' || sort.layer === 'variants') {
-      classesMap[rule.selector] = {
-        tailwindClass: rule.raws.tailwind.candidate,
-        cssSelector: rule.selector,
-      }
+        
+        classesMap[rule.selector] = {
+            tailwindClass: rule.raws.tailwind.candidate,
+            cssSelector: rule.selector,
+        }
+        
+        classesCount[rule.raws.tailwind.candidate]++
+        
+        if (!classesMap[rule.selector]) {
+            classesMap[rule.selector].classesCount = 0
+        }
+
+        classesMap[rule.selector].classesCount++
     }
   }
 
   classesMap = Object.fromEntries(
     Object.entries(classesMap)
-      .sort((a, b) => a[0].length - b[0].length)
+      .sort((a, b) => a[1].classesCount - b[1].classesCount)
       .reverse()
   )
 

@@ -2,21 +2,21 @@
     ".hover\\:bg-red-500:hover": {
         "tailwindClass": "hover:bg-red-500",
         "cssSelector": ".hover\\:bg-red-500:hover",
-        "minorName": ".a"
+        "minorName": "a"
     },
     ".text-red-500": {
         "tailwindClass": "text-red-500",
         "cssSelector": ".text-red-500",
-        "minorName": ".b"
+        "minorName": "b"
     },
     ".w-10": {
         "tailwindClass": "w-10",
         "cssSelector": ".w-10",
-        "minorName": ".c"
+        "minorName": "c"
     },
     ".h-10": {
         "tailwindClass": "h-10",
         "cssSelector": ".h-10",
-        "minorName": ".d"
+        "minorName": "d"
     }
 }

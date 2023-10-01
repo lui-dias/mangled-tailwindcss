@@ -43,6 +43,7 @@ function getTransformer(tailwindConfig, fileExtension) {
 }
 
 let extractorCache = new WeakMap()
+const allClasses = []
 
 // Scans template contents for possible classes. This is a hot path on initial build but
 // not too important for subsequent builds. The faster the better though — if we can speed
@@ -66,6 +67,10 @@ function getClassCandidates(content, extractor, candidates, seen) {
       }
     } else {
       let extractorMatches = extractor(line).filter((s) => s !== '!*')
+      for (const i of extractorMatches) {
+        allClasses.push(i)
+      }
+
       let lineMatchesSet = new Set(extractorMatches)
 
       for (let match of lineMatchesSet) {
@@ -75,6 +80,20 @@ function getClassCandidates(content, extractor, candidates, seen) {
       extractorCache.get(extractor).set(line, lineMatchesSet)
     }
   }
+}
+
+function countBy(asdasdasd) {
+    return asdasdasd.reduce(function (
+        count,
+        currentValue
+    ) {
+        return (
+            count[currentValue] ? ++count[currentValue] : (count[currentValue] = 1),
+            count
+        );
+    },
+    {});
+    
 }
 
 /**
@@ -95,20 +114,15 @@ function buildStylesheet(rules, context) {
 
   const m = mini()
   let classesMap = {}
+  const counted = countBy(allClasses)
 
   for (let [sort, rule] of sortedRules) {
     if (sort.layer === 'utilities' || sort.layer === 'variants') {
-        
-        classesMap[rule.selector] = {
-            tailwindClass: rule.raws.tailwind.candidate,
-            cssSelector: rule.selector,
-        }
-        
-        if (!classesMap[rule.selector].classesCount) {
-            classesMap[rule.selector].classesCount = 0
-        }
-
-        classesMap[rule.selector].classesCount++
+      classesMap[rule.selector] = {
+        tailwindClass: rule.raws.tailwind.candidate,
+        cssSelector: rule.selector,
+        classesCount: counted[rule.raws.tailwind.candidate]
+      }
     }
   }
 

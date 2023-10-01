@@ -2,24 +2,28 @@
     ".hover\\:bg-red-500:hover": {
         "tailwindClass": "hover:bg-red-500",
         "cssSelector": ".hover\\:bg-red-500:hover",
+        "classesCount": null,
         "minorName": "a",
         "mangledName": "a"
     },
     ".text-red-500": {
         "tailwindClass": "text-red-500",
         "cssSelector": ".text-red-500",
+        "classesCount": null,
         "minorName": "b",
         "mangledName": "b"
     },
     ".w-10": {
         "tailwindClass": "w-10",
         "cssSelector": ".w-10",
+        "classesCount": null,
         "minorName": "c",
         "mangledName": "c"
     },
     ".h-10": {
         "tailwindClass": "h-10",
         "cssSelector": ".h-10",
+        "classesCount": null,
         "minorName": "d",
         "mangledName": "d"
     }

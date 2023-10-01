@@ -104,8 +104,6 @@ function buildStylesheet(rules, context) {
             cssSelector: rule.selector,
         }
         
-        classesCount[rule.raws.tailwind.candidate]++
-        
         if (!classesMap[rule.selector]) {
             classesMap[rule.selector].classesCount = 0
         }

@@ -7,6 +7,7 @@ import cloneNodes from '../util/cloneNodes'
 import { defaultExtractor } from './defaultExtractor'
 import { mini } from '../minify-stuff'
 import { writeFileSync } from 'fs'
+import escapeClassName from '../util/escapeClassName'
 
 let env = sharedState.env
 
@@ -121,7 +122,7 @@ function buildStylesheet(rules, context) {
 
     for (let [sort, rule] of sortedRules) {
       if (rule.selector === v.cssSelector) {
-        rule.selector = '.' + lowerName.replace(/^\./, '')
+        rule.selector = escapeClassName('.' + lowerName.replace(/^\./, ''))
       }
 
       returnValue[sort.layer].add(rule)

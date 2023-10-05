@@ -1,30 +1,16 @@
 {
-    ".hover\\:bg-red-500:hover": {
-        "tailwindClass": "hover:bg-red-500",
-        "cssSelector": ".hover\\:bg-red-500:hover",
-        "classesCount": 1,
+    "xl:w-10": {
+        "tailwindClass": "xl:w-10",
+        "cssSelector": ".xl\\:w-10",
+        "classesCount": 3,
         "minorName": "a",
         "mangledName": "a"
     },
-    ".text-red-500": {
-        "tailwindClass": "text-red-500",
-        "cssSelector": ".text-red-500",
-        "classesCount": 1,
+    "sm:text-blue-500": {
+        "tailwindClass": "sm:text-blue-500",
+        "cssSelector": ".sm\\:text-blue-500",
+        "classesCount": 2,
         "minorName": "b",
         "mangledName": "b"
-    },
-    ".w-10": {
-        "tailwindClass": "w-10",
-        "cssSelector": ".w-10",
-        "classesCount": 1,
-        "minorName": "c",
-        "mangledName": "c"
-    },
-    ".h-10": {
-        "tailwindClass": "h-10",
-        "cssSelector": ".h-10",
-        "classesCount": 1,
-        "minorName": "d",
-        "mangledName": "d"
     }
 }

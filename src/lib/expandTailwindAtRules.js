@@ -83,17 +83,9 @@ function getClassCandidates(content, extractor, candidates, seen) {
 }
 
 function countBy(asdasdasd) {
-    return asdasdasd.reduce(function (
-        count,
-        currentValue
-    ) {
-        return (
-            count[currentValue] ? ++count[currentValue] : (count[currentValue] = 1),
-            count
-        );
-    },
-    {});
-    
+  return asdasdasd.reduce(function (count, currentValue) {
+    return count[currentValue] ? ++count[currentValue] : (count[currentValue] = 1), count
+  }, {})
 }
 
 /**
@@ -120,8 +112,8 @@ function buildStylesheet(rules, context) {
     if (sort.layer === 'utilities' || sort.layer === 'variants') {
       classesMap[rule.raws.tailwind.candidate] = {
         tailwindClass: rule.raws.tailwind.candidate,
-        cssSelector: rule.selector,
-        classesCount: counted[rule.raws.tailwind.candidate]
+        cssSelector: rule.selector ?? rule.nodes[0].selector,
+        classesCount: counted[rule.raws.tailwind.candidate],
       }
     }
   }
@@ -142,7 +134,7 @@ function buildStylesheet(rules, context) {
     const lowerName = n.length < v.tailwindClass.length ? n : v.tailwindClass
 
     for (let [sort, rule] of sortedRules) {
-      if (rule.selector === v.cssSelector) {
+      if (rule.type !== 'comment' && (rule.selector ?? rule.nodes[0].selector) === v.cssSelector) {
         rule.selector = '.' + escapeClassName(lowerName.replace(/^\./, ''))
         classesMap[k].minorName = escapeClassName(lowerName.replace(/^\./, ''))
         classesMap[k].mangledName = escapeClassName(n)
@@ -216,6 +208,7 @@ export default function expandTailwindAtRules(context) {
     }
 
     env.DEBUG && console.timeEnd('Reading changed files')
+    console.log('Found', candidates.size, 'classes')
 
     // ---
 

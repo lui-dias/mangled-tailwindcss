@@ -1,5 +1,5 @@
 /*
-! tailwindcss v0.0.33 | MIT License | https://tailwindcss.com
+! tailwindcss v0.0.34 | MIT License | https://tailwindcss.com
 *//*
 1. Prevent padding and border from affecting element width. (https://github.com/mozdevs/cssremedy/issues/4)
 2. Allow adding a border to an element by just adding a border-width. (https://github.com/tailwindcss/tailwindcss/pull/116)
@@ -478,17 +478,18 @@ video {
   --tw-backdrop-saturate:  ;
   --tw-backdrop-sepia:  ;
 }
-.d {
-  height: 2.5rem;
+
+@media (min-width: 640px) {
+
+  .sm\:text-blue-500 {
+    --tw-text-opacity: 1;
+    color: rgb(59 130 246 / var(--tw-text-opacity));
+  }
 }
-.c {
-  width: 2.5rem;
-}
-.b {
-  --tw-text-opacity: 1;
-  color: rgb(239 68 68 / var(--tw-text-opacity));
-}
-.a {
-  --tw-bg-opacity: 1;
-  background-color: rgb(239 68 68 / var(--tw-bg-opacity));
+
+@media (min-width: 1280px) {
+
+  .xl\:w-10 {
+    width: 2.5rem;
+  }
 }

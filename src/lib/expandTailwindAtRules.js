@@ -135,7 +135,11 @@ function buildStylesheet(rules, context) {
 
     for (let [sort, rule] of sortedRules) {
       if (rule.type !== 'comment' && (rule.selector ?? rule.nodes[0].selector) === v.cssSelector) {
-        rule.selector = '.' + escapeClassName(lowerName.replace(/^\./, ''))
+        if (rule.selector) {
+            rule.selector = '.' + escapeClassName(lowerName.replace(/^\./, ''))
+        } else {
+          rule.nodes[0].selector = '.' + escapeClassName(lowerName.replace(/^\./, ''))
+        }
         classesMap[k].minorName = escapeClassName(lowerName.replace(/^\./, ''))
         classesMap[k].mangledName = escapeClassName(n)
       }

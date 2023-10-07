@@ -1,0 +1,26 @@
+[
+    {
+        "sort": {
+            "layer": "base",
+            "parentLayer": "base",
+            "arbitrary": "0",
+            "variants": "0",
+            "parallelIndex": "0",
+            "index": "0",
+            "options": []
+        },
+        "layer": "base",
+        "options": {}
+    },
+    {
+        "raws": {
+            "tailwind": {
+                "classCandidate": "*",
+                "preserveSource": false
+            }
+        },
+        "text": "! tailwindcss v0.0.36 | MIT License | https://tailwindcss.com",
+        "type": "comment",
+        "inputs": []
+    }
+]

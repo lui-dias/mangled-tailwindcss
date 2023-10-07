@@ -43,7 +43,7 @@ function getTransformer(tailwindConfig, fileExtension) {
 }
 
 let extractorCache = new WeakMap()
-const allClasses = []
+let allClasses = {}
 
 // Scans template contents for possible classes. This is a hot path on initial build but
 // not too important for subsequent builds. The faster the better though — if we can speed
@@ -67,9 +67,25 @@ function getClassCandidates(content, extractor, candidates, seen) {
       }
     } else {
       let extractorMatches = extractor(line).filter((s) => s !== '!*')
-      for (const i of extractorMatches) {
-        allClasses.push(i)
-      }
+      allClasses = Object.entries(
+        extractorMatches.reduce((acc, cur) => {
+          if (acc[cur]) return acc
+
+          acc[cur] = (
+            line.match(new RegExp(cur.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []
+          ).length
+
+          return acc
+        }, {})
+      ).reduce((acc, [clazz, count]) => {
+        if (!allClasses[clazz]) {
+          allClasses[clazz] = count
+        } else {
+          allClasses[clazz] += count
+        }
+
+        return acc
+      }, allClasses)
 
       let lineMatchesSet = new Set(extractorMatches)
 
@@ -80,12 +96,6 @@ function getClassCandidates(content, extractor, candidates, seen) {
       extractorCache.get(extractor).set(line, lineMatchesSet)
     }
   }
-}
-
-function countBy(asdasdasd) {
-  return asdasdasd.reduce(function (count, currentValue) {
-    return count[currentValue] ? ++count[currentValue] : (count[currentValue] = 1), count
-  }, {})
 }
 
 /**
@@ -106,14 +116,13 @@ function buildStylesheet(rules, context) {
 
   const m = mini()
   let classesMap = {}
-  const counted = countBy(allClasses)
 
   for (let [sort, rule] of sortedRules) {
     if (sort.layer === 'utilities' || sort.layer === 'variants') {
       classesMap[rule.raws.tailwind.candidate] = {
         tailwindClass: rule.raws.tailwind.candidate,
         cssSelector: rule.selector ?? rule.nodes[0].selector,
-        classesCount: counted[rule.raws.tailwind.candidate],
+        classesCount: allClasses[rule.raws.tailwind.candidate],
       }
     }
   }
@@ -134,15 +143,19 @@ function buildStylesheet(rules, context) {
     const lowerName = n.length < v.tailwindClass.length ? n : v.tailwindClass
 
     for (let [sort, rule] of sortedRules) {
-      if (rule.type !== 'comment' && (rule.selector ?? rule.nodes[0].selector) === v.cssSelector) {
+      /* if (rule.type !== 'comment') {
+        console.log(rule.selector ?? rule.nodes[0].selector, rule.minified)
+      } */
+      /* if (rule.type !== 'comment' && (rule.selector ?? rule.nodes[0].selector) === v.cssSelector) {
         if (rule.selector) {
-            rule.selector = '.' + escapeClassName(lowerName.replace(/^\./, ''))
+          rule.selector = '.' + escapeClassName(lowerName.replace(/^\./, ''))
         } else {
           rule.nodes[0].selector = '.' + escapeClassName(lowerName.replace(/^\./, ''))
         }
+
         classesMap[k].minorName = escapeClassName(lowerName.replace(/^\./, ''))
         classesMap[k].mangledName = escapeClassName(n)
-      }
+      } */
 
       returnValue[sort.layer].add(rule)
     }
@@ -210,6 +223,8 @@ export default function expandTailwindAtRules(context) {
         })
       )
     }
+
+    context.allClasses = allClasses
 
     env.DEBUG && console.timeEnd('Reading changed files')
     console.log('Found', candidates.size, 'classes')

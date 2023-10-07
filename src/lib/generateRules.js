@@ -18,6 +18,7 @@ import isValidArbitraryValue from '../util/isSyntacticallyValidPropertyValue'
 import { splitAtTopLevelOnly } from '../util/splitAtTopLevelOnly.js'
 import { flagEnabled } from '../featureFlags'
 import { applyImportantSelector } from '../util/applyImportantSelector'
+import { mini } from '../minify-stuff'
 
 let classNameParser = selectorParser((selectors) => {
   return selectors.first.filter(({ type }) => type === 'class').pop().value
@@ -780,7 +781,20 @@ function* resolveMatches(candidate, context, original = candidate) {
       match[1].raws.tailwind = { ...match[1].raws.tailwind, candidate }
 
       // Apply final format selector
+      candidate =
+        context.minifiedClasses && context.minifiedClasses[candidate]
+          ? context.minifiedClasses[candidate]
+          : candidate
       match = applyFinalFormat(match, { context, candidate, original })
+
+      console.log(match[1].selector)
+      if (context.minifiedClasses && match[1].selector && context.minifiedClasses[match[1].selector.slice(1)]) {
+        match[1].selector = '.' + candidate
+      }
+      console.log(match[1].selector)
+      console.log()
+      console.log()
+      console.log()
 
       // Skip rules with invalid selectors
       // This will cause the candidate to be added to the "not class"
@@ -886,6 +900,42 @@ function generateRules(candidates, context) {
   let allRules = []
   let strategy = getImportantStrategy(context.tailwindConfig.important)
 
+  const validClasses = []
+
+  // Get valid classes
+  for (let candidate of candidates) {
+    let matches = Array.from(resolveMatches(candidate, context))
+
+    if (matches.length === 0) {
+      context.notClassCache.add(candidate)
+      continue
+    }
+
+    validClasses.push(candidate)
+  }
+
+  const m = mini()
+  const minifiedClasses = {}
+
+  // gen minified
+  for (const c of validClasses) {
+    let minorClass = m()
+
+    if (minorClass.length >= c.length) {
+      m(true)
+      minorClass = c
+    }
+
+    minifiedClasses[c] = minorClass
+  }
+
+  context.minifiedClasses = minifiedClasses
+  console.log(minifiedClasses)
+
+  // ----------------------------------------------------
+  // ----------------------------------------------------
+  // ----------------------------------------------------
+
   for (let candidate of candidates) {
     if (context.notClassCache.has(candidate)) {
       continue
@@ -897,11 +947,6 @@ function generateRules(candidates, context) {
     }
 
     let matches = Array.from(resolveMatches(candidate, context))
-
-    if (matches.length === 0) {
-      context.notClassCache.add(candidate)
-      continue
-    }
 
     context.classCache.set(candidate, matches)
 
@@ -918,6 +963,7 @@ function generateRules(candidates, context) {
       }
 
       let newEntry = [sort, rule]
+
       rules.add(newEntry)
       context.ruleCache.add(newEntry)
       allRules.push(newEntry)

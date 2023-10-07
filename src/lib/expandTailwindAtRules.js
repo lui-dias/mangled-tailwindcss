@@ -114,7 +114,6 @@ function buildStylesheet(rules, context) {
     variants: new Set(),
   }
 
-  const m = mini()
   let classesMap = {}
 
   for (let [sort, rule] of sortedRules) {
@@ -123,43 +122,13 @@ function buildStylesheet(rules, context) {
         tailwindClass: rule.raws.tailwind.candidate,
         cssSelector: rule.selector ?? rule.nodes[0].selector,
         classesCount: allClasses[rule.raws.tailwind.candidate],
+        minified: context.minifiedClasses[rule.raws.tailwind.candidate],
       }
     }
+    returnValue[sort.layer].add(rule)
   }
 
-  classesMap = Object.fromEntries(
-    Object.entries(classesMap)
-      .sort((a, b) => a[1].classesCount - b[1].classesCount)
-      .reverse()
-  )
-
-  for (let [k, v] of Object.entries(classesMap)) {
-    const n = m()
-
-    if (n.length >= v.tailwindClass.length) {
-      m(true)
-    }
-
-    const lowerName = n.length < v.tailwindClass.length ? n : v.tailwindClass
-
-    for (let [sort, rule] of sortedRules) {
-      /* if (rule.type !== 'comment') {
-        console.log(rule.selector ?? rule.nodes[0].selector, rule.minified)
-      } */
-      /* if (rule.type !== 'comment' && (rule.selector ?? rule.nodes[0].selector) === v.cssSelector) {
-        if (rule.selector) {
-          rule.selector = '.' + escapeClassName(lowerName.replace(/^\./, ''))
-        } else {
-          rule.nodes[0].selector = '.' + escapeClassName(lowerName.replace(/^\./, ''))
-        }
-
-        classesMap[k].minorName = escapeClassName(lowerName.replace(/^\./, ''))
-        classesMap[k].mangledName = escapeClassName(n)
-      } */
-
-      returnValue[sort.layer].add(rule)
-    }
-  }
+  console.log(classesMap)
 
   writeFileSync('classesMap.json', JSON.stringify(classesMap, null, 4))
 

@@ -787,14 +787,11 @@ function* resolveMatches(candidate, context, original = candidate) {
           : candidate
       match = applyFinalFormat(match, { context, candidate, original })
 
-      console.log(match[1].selector)
+      console.log(context.minifiedClasses)
       if (context.minifiedClasses && match[1].selector && context.minifiedClasses[match[1].selector.slice(1)]) {
         match[1].selector = '.' + candidate
+        match[1].minified = candidate
       }
-      console.log(match[1].selector)
-      console.log()
-      console.log()
-      console.log()
 
       // Skip rules with invalid selectors
       // This will cause the candidate to be added to the "not class"

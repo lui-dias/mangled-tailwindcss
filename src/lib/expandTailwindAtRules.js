@@ -128,8 +128,6 @@ function buildStylesheet(rules, context) {
     returnValue[sort.layer].add(rule)
   }
 
-  console.log(classesMap)
-
   writeFileSync('classesMap.json', JSON.stringify(classesMap, null, 4))
 
   return returnValue

@@ -787,7 +787,6 @@ function* resolveMatches(candidate, context, original = candidate) {
           : candidate
       match = applyFinalFormat(match, { context, candidate, original })
 
-      console.log(context.minifiedClasses)
       if (context.minifiedClasses && match[1].selector && context.minifiedClasses[match[1].selector.slice(1)]) {
         match[1].selector = '.' + candidate
         match[1].minified = candidate
@@ -927,7 +926,6 @@ function generateRules(candidates, context) {
   }
 
   context.minifiedClasses = minifiedClasses
-  console.log(minifiedClasses)
 
   // ----------------------------------------------------
   // ----------------------------------------------------

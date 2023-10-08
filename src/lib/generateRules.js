@@ -788,13 +788,45 @@ function* resolveMatches(candidate, context, original = candidate) {
       match = applyFinalFormat(match, { context, candidate, original })
 
       if (context.minifiedClasses && match[1].type !== 'comment') {
-        if (match[1].selector && context.minifiedClasses[match[1].selector.slice(1)]) {
-          match[1].selector = '.' + candidate
-        } else if (
-          match[1].nodes[0].selector &&
-          context.minifiedClasses[match[1].nodes[0].selector.slice(1)]
-        ) {
-          match[1].nodes[0].selector = '.' + candidate
+        if (match[1].selector && match[1].selector.startsWith('.')) {
+          const selectors = match[1].selector.split(' ')
+          match[1].selector = selectors
+            .map((i) => {
+              const hasDot = i.startsWith('.')
+
+              if (hasDot) {
+                i = i.slice(1)
+              }
+
+              const [clazz, variant] = [...i.matchAll(/(?<clazz>[\w-]+)(?<variant>[^\w-].+)?/g)].map((m) => [
+                m.groups.clazz,
+                m.groups.variant ?? '',
+              ])[0]
+
+              if (context.minifiedClasses[clazz]) {
+                return '.' + context.minifiedClasses[clazz] + variant
+              }
+
+              return '.' + i
+            })
+            .join(' ')
+        } else if (match[1].nodes[0].selector && match[1].nodes[0].selector.startsWith('.')) {
+          const selectors = match[1].nodes[0].selector.split(' ')
+          match[1].nodes[0].selector = selectors
+            .map((i) => {
+              const hasDot = i.startsWith('.')
+
+              if (hasDot) {
+                i = i.slice(1)
+              }
+
+              if (context.minifiedClasses[i]) {
+                return '.' + context.minifiedClasses[i]
+              }
+
+              return '.' + i
+            })
+            .join(' ')
         }
         match[1].minified = candidate
       }
@@ -900,6 +932,7 @@ function getImportantStrategy(important) {
 }
 
 function generateRules(candidates, context) {
+  context.realAllClasses = {}
   let allRules = []
   let strategy = getImportantStrategy(context.tailwindConfig.important)
 
@@ -917,7 +950,10 @@ function generateRules(candidates, context) {
     validClasses.push(candidate)
   }
 
+  console.log(context.realAllClasses)
+
   const m = mini()
+  context.m = m
   const minifiedClasses = {}
 
   // gen minified

@@ -1,13 +1,10 @@
-import fs from 'fs'
 import LRU from '@alloc/quick-lru'
-import * as sharedState from './sharedState'
-import { generateRules } from './generateRules'
-import log from '../util/log'
+import fs, { writeFileSync } from 'fs'
 import cloneNodes from '../util/cloneNodes'
+import log from '../util/log'
 import { defaultExtractor } from './defaultExtractor'
-import { mini } from '../minify-stuff'
-import { writeFileSync } from 'fs'
-import escapeClassName from '../util/escapeClassName'
+import { generateRules } from './generateRules'
+import * as sharedState from './sharedState'
 
 let env = sharedState.env
 

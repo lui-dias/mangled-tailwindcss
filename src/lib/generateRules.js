@@ -798,10 +798,8 @@ function* resolveMatches(candidate, context, original = candidate) {
                 i = i.slice(1)
               }
 
-              const [clazz, variant] = [...i.matchAll(/(?<clazz>[\w-]+)(?<variant>[^\w-].+)?/g)].map((m) => [
-                m.groups.clazz,
-                m.groups.variant ?? '',
-              ])[0]
+              const separator = context.tailwindConfig.separator
+              const [clazz, variant] = splitAtTopLevelOnly(i, separator)
 
               if (context.minifiedClasses[clazz]) {
                 return '.' + context.minifiedClasses[clazz] + variant

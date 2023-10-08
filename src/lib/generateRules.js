@@ -1,24 +1,24 @@
 import postcss from 'postcss'
 import selectorParser from 'postcss-selector-parser'
-import parseObjectStyles from '../util/parseObjectStyles'
-import isPlainObject from '../util/isPlainObject'
-import prefixSelector from '../util/prefixSelector'
-import { updateAllClasses, getMatchingTypes } from '../util/pluginUtils'
-import log from '../util/log'
-import * as sharedState from './sharedState'
-import {
-  formatVariantSelector,
-  finalizeSelector,
-  eliminateIrrelevantSelectors,
-} from '../util/formatVariantSelector'
-import { asClass } from '../util/nameClass'
-import { normalize } from '../util/dataTypes'
-import { isValidVariantFormatString, parseVariant, INTERNAL_FEATURES } from './setupContextUtils'
-import isValidArbitraryValue from '../util/isSyntacticallyValidPropertyValue'
-import { splitAtTopLevelOnly } from '../util/splitAtTopLevelOnly.js'
 import { flagEnabled } from '../featureFlags'
-import { applyImportantSelector } from '../util/applyImportantSelector'
 import { mini } from '../minify-stuff'
+import { applyImportantSelector } from '../util/applyImportantSelector'
+import { normalize } from '../util/dataTypes'
+import {
+  eliminateIrrelevantSelectors,
+  finalizeSelector,
+  formatVariantSelector,
+} from '../util/formatVariantSelector'
+import isPlainObject from '../util/isPlainObject'
+import isValidArbitraryValue from '../util/isSyntacticallyValidPropertyValue'
+import log from '../util/log'
+import { asClass } from '../util/nameClass'
+import parseObjectStyles from '../util/parseObjectStyles'
+import { getMatchingTypes, updateAllClasses } from '../util/pluginUtils'
+import prefixSelector from '../util/prefixSelector'
+import { splitAtTopLevelOnly } from '../util/splitAtTopLevelOnly.js'
+import { INTERNAL_FEATURES, isValidVariantFormatString, parseVariant } from './setupContextUtils'
+import * as sharedState from './sharedState'
 
 let classNameParser = selectorParser((selectors) => {
   return selectors.first.filter(({ type }) => type === 'class').pop().value
@@ -787,8 +787,15 @@ function* resolveMatches(candidate, context, original = candidate) {
           : candidate
       match = applyFinalFormat(match, { context, candidate, original })
 
-      if (context.minifiedClasses && match[1].selector && context.minifiedClasses[match[1].selector.slice(1)]) {
-        match[1].selector = '.' + candidate
+      if (context.minifiedClasses && match[1].type !== 'comment') {
+        if (match[1].selector && context.minifiedClasses[match[1].selector.slice(1)]) {
+          match[1].selector = '.' + candidate
+        } else if (
+          match[1].nodes[0].selector &&
+          context.minifiedClasses[match[1].nodes[0].selector.slice(1)]
+        ) {
+          match[1].nodes[0].selector = '.' + candidate
+        }
         match[1].minified = candidate
       }
 
@@ -972,4 +979,4 @@ function isArbitraryValue(input) {
   return input.startsWith('[') && input.endsWith(']')
 }
 
-export { resolveMatches, generateRules }
+export { generateRules, resolveMatches }

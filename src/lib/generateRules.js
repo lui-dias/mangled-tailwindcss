@@ -936,7 +936,7 @@ function generateRules(candidates, context) {
   let allRules = []
   let strategy = getImportantStrategy(context.tailwindConfig.important)
 
-  const validClasses = []
+  let validClasses = []
 
   // Get valid classes
   for (let candidate of candidates) {
@@ -953,6 +953,12 @@ function generateRules(candidates, context) {
   const m = mini()
   context.m = m
   const minifiedClasses = {}
+
+  validClasses = validClasses.sort((a, b) => {
+    return (context.allClasses[b] ?? 0) - (context.allClasses[a] ?? 0)
+  })
+
+  console.log(validClasses)
 
   // gen minified
   for (const c of validClasses) {

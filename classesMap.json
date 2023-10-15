@@ -9,5 +9,17 @@
         "cssSelector": ".a:-webkit-scrollbar",
         "classesCount": 2,
         "minified": "a"
+    },
+    "flex": {
+        "tailwindClass": "flex",
+        "cssSelector": ".c",
+        "classesCount": 1,
+        "minified": "c"
+    },
+    "bg-red-500": {
+        "tailwindClass": "bg-red-500",
+        "cssSelector": ".b",
+        "classesCount": 1,
+        "minified": "b"
     }
 }

@@ -6,23 +6,23 @@
     },
     "carousel": {
         "tailwindClass": "carousel",
-        "cssSelector": ".aundefined",
+        "cssSelector": ".a",
         "classesCount": 3,
         "minified": "a"
     },
     "carousel-item": {
         "tailwindClass": "carousel-item",
-        "cssSelector": ".cundefined",
+        "cssSelector": ".c",
         "classesCount": 1,
         "minified": "c"
     },
     "c": {
         "tailwindClass": "c",
-        "cssSelector": ".carousel-end .cundefined"
+        "cssSelector": ".carousel-end .c"
     },
     "a": {
         "tailwindClass": "a",
-        "cssSelector": ".a",
+        "cssSelector": ".a:-webkit-scrollbar",
         "classesCount": 1
     }
 }

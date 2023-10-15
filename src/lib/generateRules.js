@@ -609,6 +609,10 @@ function* resolveMatches(candidate, context, original = candidate) {
     let matches = []
     let typesByMatches = new Map()
 
+    if (classCandidate === 'carousel') {
+      console.log(matchedPlugins[0][1][1].selector)
+    }
+
     let [plugins, modifier] = matchedPlugins
     let isOnlyPlugin = plugins.length === 1
 
@@ -785,13 +789,15 @@ function* resolveMatches(candidate, context, original = candidate) {
         context.minifiedClasses && context.minifiedClasses[candidate]
           ? context.minifiedClasses[candidate]
           : candidate
+
       match = applyFinalFormat(match, { context, candidate, original })
 
       if (context.minifiedClasses && match[1].type !== 'comment') {
         if (match[1].selector && match[1].selector.startsWith('.')) {
           const selectors = match[1].selector.split(' ')
+
           match[1].selector = selectors
-            .map((i) => {
+            .map((i, e) => {
               const hasDot = i.startsWith('.')
 
               if (hasDot) {
@@ -799,10 +805,10 @@ function* resolveMatches(candidate, context, original = candidate) {
               }
 
               const separator = context.tailwindConfig.separator
-              const [clazz, variant] = splitAtTopLevelOnly(i, separator)
+              const [clazz, ...variant] = splitAtTopLevelOnly(i, separator)
 
               if (context.minifiedClasses[clazz]) {
-                return '.' + context.minifiedClasses[clazz] + variant
+                return '.' + context.minifiedClasses[clazz] + variant.join(':')
               }
 
               return '.' + i

@@ -948,8 +948,6 @@ function generateRules(candidates, context) {
     validClasses.push(candidate)
   }
 
-  console.log(context.realAllClasses)
-
   const m = mini()
   context.m = m
   const minifiedClasses = {}

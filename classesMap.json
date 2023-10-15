@@ -1,22 +1,28 @@
 {
-    "flex": {
-        "tailwindClass": "flex",
-        "cssSelector": ".b",
-        "classesCount": 2
+    "*": {
+        "tailwindClass": "*",
+        "cssSelector": "0%",
+        "minified": "*"
     },
-    "[&_p]:hover:bg-blue-500": {
-        "tailwindClass": "[&_p]:hover:bg-blue-500",
-        "cssSelector": ".a:hover p",
-        "classesCount": 1
+    "carousel": {
+        "tailwindClass": "carousel",
+        "cssSelector": ".aundefined",
+        "classesCount": 3,
+        "minified": "a"
     },
-    "hover:bg-white": {
-        "tailwindClass": "hover:bg-white",
-        "cssSelector": ".c:hover",
-        "classesCount": 1
+    "carousel-item": {
+        "tailwindClass": "carousel-item",
+        "cssSelector": ".cundefined",
+        "classesCount": 1,
+        "minified": "c"
     },
-    "text-red-500": {
-        "tailwindClass": "text-red-500",
-        "cssSelector": ".d",
+    "c": {
+        "tailwindClass": "c",
+        "cssSelector": ".carousel-end .cundefined"
+    },
+    "a": {
+        "tailwindClass": "a",
+        "cssSelector": ".a",
         "classesCount": 1
     }
 }

@@ -6,23 +6,8 @@
     },
     "carousel": {
         "tailwindClass": "carousel",
-        "cssSelector": ".a",
-        "classesCount": 3,
-        "minified": "a"
-    },
-    "carousel-item": {
-        "tailwindClass": "carousel-item",
-        "cssSelector": ".c",
-        "classesCount": 1,
-        "minified": "c"
-    },
-    "c": {
-        "tailwindClass": "c",
-        "cssSelector": ".carousel-end .c"
-    },
-    "a": {
-        "tailwindClass": "a",
         "cssSelector": ".a:-webkit-scrollbar",
-        "classesCount": 1
+        "classesCount": 2,
+        "minified": "a"
     }
 }

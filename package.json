@@ -1,6 +1,6 @@
 {
   "name": "@ellandore/mangled-tailwind",
-  "version": "0.0.44",
+  "version": "0.0.45",
   "description": "A utility-first CSS framework for rapidly building custom user interfaces.",
   "license": "MIT",
   "main": "lib/index.js",

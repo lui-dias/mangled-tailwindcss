@@ -1,5 +1,5 @@
 /*
-! tailwindcss v0.0.43 | MIT License | https://tailwindcss.com
+! tailwindcss v0.0.44 | MIT License | https://tailwindcss.com
 *//*
 1. Prevent padding and border from affecting element width. (https://github.com/mozdevs/cssremedy/issues/4)
 2. Allow adding a border to an element by just adding a border-width. (https://github.com/tailwindcss/tailwindcss/pull/116)
@@ -650,18 +650,6 @@ html {
   scroll-behavior: smooth;
   -ms-overflow-style: none;
   scrollbar-width: none;
-}
-.c {
-  box-sizing: content-box;
-  display: flex;
-  flex: none;
-  scroll-snap-align: start;
-}
-.b .c {
-  scroll-snap-align: center;
-}
-.carousel-end .c {
-  scroll-snap-align: end;
 }
 @keyframes button-pop {
 

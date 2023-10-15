@@ -609,10 +609,6 @@ function* resolveMatches(candidate, context, original = candidate) {
     let matches = []
     let typesByMatches = new Map()
 
-    if (classCandidate === 'carousel') {
-      console.log(matchedPlugins[0][1][1].selector)
-    }
-
     let [plugins, modifier] = matchedPlugins
     let isOnlyPlugin = plugins.length === 1
 
@@ -785,12 +781,12 @@ function* resolveMatches(candidate, context, original = candidate) {
       match[1].raws.tailwind = { ...match[1].raws.tailwind, candidate }
 
       // Apply final format selector
-      candidate =
+      const _candidate =
         context.minifiedClasses && context.minifiedClasses[candidate]
           ? context.minifiedClasses[candidate]
           : candidate
 
-      match = applyFinalFormat(match, { context, candidate, original })
+      match = applyFinalFormat(match, { context, _candidate, original })
 
       if (context.minifiedClasses && match[1].type !== 'comment') {
         if (match[1].selector && match[1].selector.startsWith('.')) {
@@ -832,7 +828,7 @@ function* resolveMatches(candidate, context, original = candidate) {
             })
             .join(' ')
         }
-        match[1].minified = candidate
+        match[1].minified = _candidate
       }
 
       // Skip rules with invalid selectors
